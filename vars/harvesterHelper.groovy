@@ -8,15 +8,16 @@ import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
  * @param processDirectory directory in which to discover a harvester '.item' file
  * @return the harvester name
  */
-def getHarvesterJobName(String processDirectory) {
+def getHarvesterJobName(String projectName, String processDirectory) {
     def finder = new FileNameByRegexFinder()
-    processFile = finder.getFileNames(processDirectory, '.*_harvester_[0-9]+\\.[0-9]+\\.item')[0]
+    allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect { new File(it).getName().replaceAll('_[0-9]+\\.[0-9]+\\.item$','') }
+    harvesterName = allItems.find { it.matches('.*_harvester') || it.matches("^${projectName}.*") }
 
-    if (!processFile) {
+    if (!harvesterName) {
         return null
     }
 
-    return processFile.split('/')[-1].replaceAll('_[0-9]+\\.[0-9]+\\.item$','')
+    return harvesterName
 }
 
 
@@ -50,3 +51,4 @@ def addBuildProperties(String zipFilePath, EnvActionImpl env, String propertiesF
         throw new Exception("failed to update harvester ZIP file with build.properties.\nstdOut:\n${out.toString()}\nstdErr:\n${err.toString()}")
     }
 }
+
