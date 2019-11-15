@@ -9,14 +9,9 @@ import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
  * @return the harvester name
  */
 def getHarvesterJobName(String projectName, String processDirectory) {
-    def finder = new FileNameByRegexFinder()
-    allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect { new File(it).getName().replaceAll('_[0-9]+\\.[0-9]+\\.item$','') }
-    harvesterName = allItems.find { it.matches('.*_harvester') || it.matches("^${projectName}.*") }
-
-    if (!harvesterName) {
-        return null
-    }
-
+    FileNameByRegexFinder finder = new FileNameByRegexFinder()
+    String[] allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect { new File(it).getName().replaceAll('_[0-9]+\\.[0-9]+\\.item$','') }
+    String harvesterName = allItems.find { it.matches('.*_harvester') || it.matches("^${projectName}.*") }
     return harvesterName
 }
 
