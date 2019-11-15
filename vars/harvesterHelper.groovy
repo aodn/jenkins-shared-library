@@ -3,14 +3,28 @@
 import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
 
 /**
+ * Extract the project name component from a job name string
+ *
+ * @param jobName string
+ * @return the project name or null
+ */
+String getProjectNameFromJobName(String jobName) {
+    String projectName = (jobName =~ /harvester_(.+)_build/).with { it.matches() ? it[0][1] : null }
+    return projectName
+}
+
+
+/**
  * Search a given directory for a Talend harvester
  *
  * @param processDirectory directory in which to discover a harvester '.item' file
  * @return the harvester name
  */
-def getHarvesterJobName(String projectName, String processDirectory) {
+String getHarvesterNameFromProjectName(String projectName, String processDirectory) {
     FileNameByRegexFinder finder = new FileNameByRegexFinder()
-    String[] allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect { new File(it).getName().replaceAll('_[0-9]+\\.[0-9]+\\.item$','') }
+    String[] allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect {
+        new File(it).getName().replaceAll('_[0-9]+\\.[0-9]+\\.item$', '')
+    }
     String harvesterName = allItems.find { it.matches('.*_harvester') || it.matches("^${projectName}.*") }
     return harvesterName
 }
@@ -24,26 +38,29 @@ def getHarvesterJobName(String projectName, String processDirectory) {
  * @param propertiesFilePath local path to write the build properties. Note: the file will *always* be written to the
  *          root of the zip file, using the basename of the file
  */
-def addBuildProperties(String zipFilePath, EnvActionImpl env, String propertiesFilePath='build.properties') {
-    // generate build.properties file from environment variables
-    propertiesFile = new File(propertiesFilePath)
-    def buildVars = env.getEnvironment().findAll { it.key == 'GIT_COMMIT' || it.key.matches('.*BUILD_.*') }
-    println "matching buildVars: ${buildVars}"
-    propertiesFile.write('')
-    buildVars.each {
-        propertiesFile << "${it.key}=${it.value}\n"
+Map<String, String> addBuildProperties(String zipFilePath, EnvActionImpl env, String propertiesFileName = 'build.properties') {
+    Map<String, String> buildVars = env.getEnvironment().findAll {
+        it.key == 'GIT_COMMIT' || it.key.matches('.*BUILD_.*')
     }
 
-    // add build.properties to the harvester ZIP file
-    def baseName = propertiesFile.getName()
-    def workingDirectory = propertiesFile.getParentFile()
-    def process = "zip ${zipFilePath} ${baseName}".execute(null, workingDirectory)
-    def out = new ByteArrayOutputStream()
-    def err = new ByteArrayOutputStream()
-    process.consumeProcessOutput(out, err)
-    process.waitFor()
-    if (process.exitValue() != 0) {
-        throw new Exception("failed to update harvester ZIP file with build.properties.\nstdOut:\n${out.toString()}\nstdErr:\n${err.toString()}")
+    File.createTempDir().with { tempDir ->
+        File propertiesFile = new File(tempDir.getAbsolutePath(), propertiesFileName)
+        propertiesFile.withWriter { writer ->
+            buildVars.each {
+                writer.write("${it.key}=${it.value}\n")
+            }
+        }
+
+        // add build.properties to the harvester ZIP file
+        String baseName = propertiesFile.getName()
+        Process process = "zip ${zipFilePath} ${baseName}".execute(null, propertiesFile.getParentFile())
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        ByteArrayOutputStream err = new ByteArrayOutputStream()
+        process.consumeProcessOutput(out, err)
+        process.waitFor()
+        if (process.exitValue() != 0) {
+            throw new Exception("failed to update harvester ZIP file with build.properties.\nstdOut:\n${out.toString()}\nstdErr:\n${err.toString()}")
+        }
     }
+    return buildVars
 }
-
