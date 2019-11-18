@@ -1,6 +1,7 @@
 #!groovy
 
 import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
+import com.cloudbees.groovy.cps.NonCPS
 
 /**
  * Extract the project name component from a job name string
@@ -8,6 +9,7 @@ import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
  * @param jobName string
  * @return the project name or null
  */
+@NonCPS
 String getProjectNameFromJobName(String jobName) {
     String projectName = (jobName =~ /harvester_(.+)_build/).with { it.matches() ? it[0][1] : null }
     return projectName
@@ -20,6 +22,7 @@ String getProjectNameFromJobName(String jobName) {
  * @param processDirectory directory in which to discover a harvester '.item' file
  * @return the harvester name
  */
+@NonCPS
 String getHarvesterNameFromProjectName(String projectName, String processDirectory) {
     FileNameByRegexFinder finder = new FileNameByRegexFinder()
     String[] allItems = finder.getFileNames(processDirectory, '.*_[0-9]+\\.[0-9]+\\.item').collect {
@@ -38,6 +41,7 @@ String getHarvesterNameFromProjectName(String projectName, String processDirecto
  * @param propertiesFilePath local path to write the build properties. Note: the file will *always* be written to the
  *          root of the zip file, using the basename of the file
  */
+@NonCPS
 Map<String, String> addBuildProperties(String zipFilePath, EnvActionImpl env, String propertiesFileName = 'build.properties') {
     Map<String, String> buildVars = env.getEnvironment().findAll {
         it.key == 'GIT_COMMIT' || it.key.matches('.*BUILD_.*')
