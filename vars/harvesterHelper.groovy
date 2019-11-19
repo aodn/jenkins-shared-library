@@ -47,6 +47,11 @@ Map<String, String> addBuildProperties(String zipFilePath, EnvActionImpl env, St
         it.key == 'GIT_COMMIT' || it.key.matches('.*BUILD_.*')
     }
 
+    def zipFile = new File(zipFilePath)
+    if (!zipFile.exists()) {
+        throw new RuntimeException("ZIP file '${zipFilePath}' not found.")
+    }
+
     File.createTempDir().with { tempDir ->
         File propertiesFile = new File(tempDir.getAbsolutePath(), propertiesFileName)
         propertiesFile.withWriter { writer ->
@@ -61,9 +66,10 @@ Map<String, String> addBuildProperties(String zipFilePath, EnvActionImpl env, St
         ByteArrayOutputStream out = new ByteArrayOutputStream()
         ByteArrayOutputStream err = new ByteArrayOutputStream()
         process.consumeProcessOutput(out, err)
-        process.waitFor()
         if (process.exitValue() != 0) {
-            throw new Exception("failed to update harvester ZIP file with build.properties.\nstdOut:\n${out.toString()}\nstdErr:\n${err.toString()}")
+            String outString = out.toString()
+            String errString = err.toString()
+            throw new RuntimeException("failed to update harvester ZIP file with build.properties.\nstdOut:\n${outString}\nstdErr:\n${errString}")
         }
     }
     return buildVars
