@@ -66,7 +66,7 @@ Map<String, String> addBuildProperties(String zipFilePath, EnvActionImpl env, St
         ByteArrayOutputStream out = new ByteArrayOutputStream()
         ByteArrayOutputStream err = new ByteArrayOutputStream()
         process.consumeProcessOutput(out, err)
-        if (process.exitValue() != 0) {
+        if (process.waitFor() != 0) {
             String outString = out.toString()
             String errString = err.toString()
             throw new RuntimeException("failed to update harvester ZIP file with build.properties.\nstdOut:\n${outString}\nstdErr:\n${errString}")
