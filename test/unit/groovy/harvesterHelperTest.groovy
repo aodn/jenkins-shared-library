@@ -85,8 +85,8 @@ class HarvesterHelperTest extends BasePipelineTest {
     }
 
     @Test
-    void addBuildProperties_AppendsPropertiesFile() throws Exception {
-        def zipFilePath = this.getClass().getResource('/test.zip').getFile()
+    void addBuildProperties_AppendsPropertiesFile_WithValidZip() throws Exception {
+        def zipFilePath = this.getClass().getResource('/valid-test.zip').getFile()
         Map<String, String> buildVars = harvesterHelper.addBuildProperties(zipFilePath, env)
 
         ZipFile zipFile = new ZipFile(new File(zipFilePath))
@@ -99,5 +99,17 @@ class HarvesterHelperTest extends BasePipelineTest {
         ]
         assertEquals(expectedMap, buildVars)
         assertEquals(expectedMap, props)
+    }
+
+    @Test(expected = RuntimeException.class)
+    void addBuildProperties_ThrowsException_WithInvalidZip() throws Exception {
+        def zipFilePath = this.getClass().getResource('/invalid-test.zip').getFile()
+        Map<String, String> buildVars = harvesterHelper.addBuildProperties(zipFilePath, env)
+    }
+
+    @Test(expected = RuntimeException.class)
+    void addBuildProperties_ThrowsException_WithMissingZip() throws Exception {
+        def zipFilePath = '/test-zipfile-that-doesnt-exist.zip'
+        Map<String, String> buildVars = harvesterHelper.addBuildProperties(zipFilePath, env)
     }
 }
