@@ -51,3 +51,13 @@ static int getUpstreamTriggerOrLatestBuildNumber(RunWrapper promotedBuild, Strin
     println(">> Manual trigger detected, using latest build ${build.getFullDisplayName()}")
     return buildNum
 }
+
+/**
+ * Print the time when a stage promotion occurred
+ *
+ * @param stage the stage being promoted to
+ */
+void printStagePromotionTime(String stage) {
+    def date = java.time.LocalDateTime.now()
+    println("Promoted to ${stage} at ${date}")
+}
