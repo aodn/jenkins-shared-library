@@ -5,19 +5,20 @@ import hudson.EnvVars
 import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.powermock.api.mockito.PowerMockito
+import org.powermock.modules.junit4.PowerMockRunner
 
 import java.util.zip.ZipFile
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNull
-import static org.mockito.Mockito.mock
-import static org.mockito.Mockito.when
 
-
+@RunWith(PowerMockRunner.class)
 class HarvesterHelperTest extends BasePipelineTest {
 
-    Script harvesterHelper
-    EnvActionImpl env
+    private Script harvesterHelper
+    private EnvActionImpl env
 
     @Override
     @Before
@@ -25,15 +26,16 @@ class HarvesterHelperTest extends BasePipelineTest {
         super.setUp();
         harvesterHelper = loadScript('vars/harvesterHelper.groovy')
 
-        HashMap<String, String> envVars = [
+        HashMap<String, String> vars = [
                 BUILD_NUMBER   : '123',
                 GIT_COMMIT     : 'da39a3ee5e6b4b0d3255bfef95601890afd80709',
                 GIT_SECRET     : 'SHOULD_IGNORE',
                 RANDOM_VARIABLE: 'SHOULD_IGNORE'
         ]
+        EnvVars envVars = new EnvVars(vars)
 
-        env = mock(EnvActionImpl.class)
-        when(env.getEnvironment()).thenReturn(new EnvVars(envVars))
+        env = PowerMockito.mock(EnvActionImpl.class)
+        PowerMockito.when(env.getEnvironment()).thenReturn(envVars)
     }
 
     @Test

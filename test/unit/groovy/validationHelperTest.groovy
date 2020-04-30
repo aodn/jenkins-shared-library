@@ -1,18 +1,15 @@
 package unit.groovy
 
 import com.lesfurets.jenkins.unit.BasePipelineTest
-import org.jenkinsci.plugins.workflow.cps.EnvActionImpl
 import org.junit.Before
 import org.junit.Test
 
-import static org.junit.Assert.assertTrue
 import static org.junit.Assert.assertFalse
-
+import static org.junit.Assert.assertTrue
 
 class ValidationTest extends BasePipelineTest {
 
-    Script validationHelper
-    EnvActionImpl env
+    private Script validationHelper
 
     @Override
     @Before
