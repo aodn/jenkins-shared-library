@@ -1,0 +1,23 @@
+{
+    "chef_environment": "systest",
+    "name": "example-node-2",
+    "description": [
+        "This node is used for unit testing ONLY."
+    ],
+    "hostname": "example-node-2",
+    "run_list": [
+    ],
+    "ipaddress": "192.168.1.2",
+    "network": {
+        "public_ipv4": "192.168.2.2"
+    },
+    "fqdn": "example-node-2.example.com",
+    "aliases": [
+        "example-node-2-alias.example.com"
+    ],
+    "keys": {
+        "ssh": {
+            "host_rsa_public": "EXAMPLE_NODE_2_RSA_PUBLIC_KEY"
+        }
+    }
+}

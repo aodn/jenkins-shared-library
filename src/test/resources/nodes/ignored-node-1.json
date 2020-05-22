@@ -1,0 +1,18 @@
+{
+    "chef_environment": "production",
+    "name": "ignored-node",
+    "description": [
+        "This node is used for unit testing ONLY."
+    ],
+    "hostname": "ignored-node-1",
+    "run_list": [
+    ],
+    "ipaddress": "192.168.1.3",
+    "network": {
+        "public_ipv4": "192.168.2.3"
+    },
+    "fqdn": "ignored-node-1.example.com",
+    "aliases": [
+        "ignored-node-1-alias.example.com"
+    ]
+}
