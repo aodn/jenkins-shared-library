@@ -13,7 +13,15 @@ import groovy.text.SimpleTemplateEngine
  */
 @NonCPS
 static LazyMap loadJSONFile(String jsonFilePath) {
-    File file = new File(jsonFilePath)
+    File file
+
+    if (jsonFilePath.startsWith('/')) {
+        file = new File(jsonFilePath)
+    } else {
+        def defaultPathBase = new File( "." ).getCanonicalPath()
+        file = new File(defaultPathBase, jsonFilePath)
+    }
+
     LazyMap json = new JsonSlurper().parse(file)
     return json
 }
@@ -58,10 +66,16 @@ static List<String> getNodesForEnvironment(String environment, String nodesDirec
         }
 
         LazyMap nodeJson = loadJSONFile(nodeFile.getAbsolutePath())
+
         String nodeEnvironment = nodeJson.get('chef_environment', null)
+        String nodeHostName = nodeJson.get('hostname', null)
+
+        if (nodeEnvironment == null || nodeHostName == null ) {
+            throw new RuntimeException("One or more required values not found in node file ${nodeFile.getAbsolutePath()}. Must contain 'chef_environment' and 'hostname' attributes.")
+        }
 
         if (nodeEnvironment == environment) {
-            environmentNodes.add(nodeName)
+            environmentNodes.add(nodeHostName)
         }
     }
     return environmentNodes
@@ -120,7 +134,7 @@ static void generateSshConfigForNode(String nodeFilePath, String sshConfigOutput
 
     // test for any null or empty values
     if (bindings.any { k,v -> !v?.trim()}) {
-        throw new RuntimeException("One or more required values not found in node file ${nodeFilePath}: ${bindings.toString()}. Must contain valie 'ipaddress' and 'keys.ssh.host_rsa_public' attributes.")
+        throw new RuntimeException("One or more required values not found in node file ${nodeFilePath}: ${bindings.toString()}. Must contain 'ipaddress' and 'keys.ssh.host_rsa_public' attributes.")
     }
 
     def engine = new SimpleTemplateEngine()

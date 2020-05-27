@@ -25,9 +25,9 @@ class ChefHelperTest extends BasePipelineTest {
     }
 
     @Test
-    void loadJSONFile_ReturnsEqualMap_WithExampleNodeFile() throws Exception {
-        def nodeFilePath = this.getClass().getResource('/nodes/example-node-1.json').getFile()
-        LazyMap node = chefHelper.loadJSONFile(nodeFilePath)
+    void loadJSONFile_ReturnsEqualMap_WithAbsoluteNodeFilePath() throws Exception {
+        def absoluteNodeFilePath = this.getClass().getResource('/nodes/example-node-1.example.com.json').getFile()
+        LazyMap node = chefHelper.loadJSONFile(absoluteNodeFilePath)
 
         def expected = [
                 "chef_environment": "production",
@@ -57,8 +57,44 @@ class ChefHelperTest extends BasePipelineTest {
     }
 
     @Test
+    void loadJSONFile_ReturnsEqualMap_WithRelativeNodeFilePath() throws Exception {
+        def currentDirectory = new File(new File(".").getCanonicalPath())
+        def nodeFilePath = new File(this.getClass().getResource('/nodes/example-node-1.example.com.json').getFile())
+        def relativeNodePath = currentDirectory.toPath().relativize(nodeFilePath.toPath()).toFile().toString()
+
+        LazyMap node = chefHelper.loadJSONFile(relativeNodePath)
+
+        def expected = [
+                "chef_environment": "production",
+                "name": "example-node-1",
+                "description": [
+                        "This node is used for unit testing ONLY."
+                ],
+                "hostname": "example-node-1",
+                "run_list": [
+                ],
+                "ipaddress": "192.168.1.1",
+                "network": [
+                        "public_ipv4": "192.168.2.1"
+                ],
+                "fqdn": "example-node-1.example.com",
+                "aliases": [
+                        "example-node-1-alias.example.com"
+                ],
+                "keys": [
+                        "ssh": [
+                                "host_rsa_public": "EXAMPLE_NODE_1_RSA_PUBLIC_KEY"
+                        ]
+                ]
+        ] as LazyMap
+
+        assertTrue(expected == node)
+
+    }
+
+    @Test
     void stripExtension_StripsExtension_WithJsonFile() throws Exception {
-        assertEquals('example-node-1', chefHelper.stripExtension('example-node-1.json'))
+        assertEquals('example-node-1.example.com', chefHelper.stripExtension('example-node-1.example.com.json'))
     }
 
     @Test
@@ -72,13 +108,32 @@ class ChefHelperTest extends BasePipelineTest {
     }
 
     @Test
-    void getNodesForEnvironment_ReturnsNonExcludedNodesForEnvironment_WithNodesDirectory() throws Exception {
+    void getNodesForEnvironment_ReturnsNonExcludedNodesForEnvironment_WithAbsoluteNodesDirectory() throws Exception {
         def nodesDirectory = new File(this.getClass()
-                .getResource('/nodes/example-node-1.json')
+                .getResource('/nodes/example-node-1.example.com.json')
                 .getFile()
         ).getParentFile().toString()
 
-        List<String> nodes = chefHelper.getNodesForEnvironment("production", nodesDirectory, "ignored-node-1")
+        List<String> nodes = chefHelper.getNodesForEnvironment("production", nodesDirectory, "ignored-node-1.example.com")
+        List<String> expected = ['example-node-1']
+
+        // comparison must ignore ordering, due to undefined load order from filesystem
+        assertTrue(expected.size() == nodes.size() &&
+                expected.containsAll(nodes) && nodes.containsAll(expected))
+    }
+
+    @Test
+    void getNodesForEnvironment_ReturnsNonExcludedNodesForEnvironment_WithRelativeNodesDirectory() throws Exception {
+        def nodesDirectory = new File(this.getClass()
+                .getResource('/nodes/example-node-1.example.com.json')
+                .getFile()
+        ).getParentFile()
+
+        def currentDirectory = new File(new File(".").getCanonicalPath())
+
+        def relativeNodesDirectory = currentDirectory.toPath().relativize(nodesDirectory.toPath()).toFile().toString()
+
+        List<String> nodes = chefHelper.getNodesForEnvironment("production", relativeNodesDirectory, "ignored-node-1.example.com")
         List<String> expected = ['example-node-1']
 
         // comparison must ignore ordering, due to undefined load order from filesystem
@@ -99,14 +154,14 @@ class ChefHelperTest extends BasePipelineTest {
     }
     @Test
     void getTagForNode_ReturnsProdTag_WithKnownEnvironment() throws Exception {
-        String nodeFilePath = this.getClass().getResource('/nodes/example-node-1.json').getFile()
+        String nodeFilePath = this.getClass().getResource('/nodes/example-node-1.example.com.json').getFile()
         String tag = chefHelper.getTagForNode(nodeFilePath)
         assertEquals("prod", tag)
     }
 
     @Test
     void generateSshConfigForNode_GeneratesFiles_WithValidExampleNode() throws Exception {
-        String nodeFilePath = this.getClass().getResource('/nodes/example-node-1.json').getFile()
+        String nodeFilePath = this.getClass().getResource('/nodes/example-node-1.example.com.json').getFile()
         String sshConfigOutputPath = folder.newFile()
         String knownHostsOutputPath = folder.newFile()
 
@@ -118,7 +173,7 @@ class ChefHelperTest extends BasePipelineTest {
 
     @Test(expected = RuntimeException.class)
     void generateSshConfigForNode_RaisesException_WithInvalidExampleNode() throws Exception {
-        String nodeFilePath = this.getClass().getResource('/nodes/ignored-node-1.json').getFile()
+        String nodeFilePath = this.getClass().getResource('/nodes/ignored-node-1.example.com.json').getFile()
         String sshConfigOutputPath = folder.newFile()
         String knownHostsOutputPath = folder.newFile()
 
