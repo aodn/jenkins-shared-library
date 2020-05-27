@@ -61,7 +61,7 @@ static List<String> getNodesForEnvironment(String environment, String nodesDirec
         String nodeName = stripExtension(nodeFile.getName())
 
         if (nodesToIgnore?.contains(nodeName)) {
-            println("Ignoring node ${nodeName}")
+            println("Ignoring explicitly ignored node ${nodeName}")
             continue
         }
 
@@ -71,7 +71,8 @@ static List<String> getNodesForEnvironment(String environment, String nodesDirec
         String nodeHostName = nodeJson.get('hostname', null)
 
         if (nodeEnvironment == null || nodeHostName == null ) {
-            throw new RuntimeException("One or more required values not found in node file ${nodeFile.getAbsolutePath()}. Must contain 'chef_environment' and 'hostname' attributes.")
+            println("Ignoring invalid node ${nodeName}. Must contain 'chef_environment' and 'hostname' attributes.")
+            continue
         }
 
         if (nodeEnvironment == environment) {
