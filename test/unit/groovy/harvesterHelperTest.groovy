@@ -87,6 +87,16 @@ class HarvesterHelperTest extends BasePipelineTest {
     }
 
     @Test
+    void getHarvesterNameFromProjectName_ReturnsSuffixedHarvesterName_WhenJobWithoutSuffixPreceedsJobwithSuffix() throws Exception {
+        def projectDir = new File(this.getClass()
+                .getResource('/TEST_PROJECT4/TEST_PROJECT4_harvester_0.1.item')
+                .getFile()
+        ).getParentFile().toString()
+        String harvesterName = harvesterHelper.getHarvesterNameFromProjectName('TEST_PROJECT4', projectDir)
+        assertEquals('TEST_PROJECT4_harvester', harvesterName)
+    }
+
+    @Test
     void addBuildProperties_AppendsPropertiesFile_WithValidZip() throws Exception {
         def zipFilePath = this.getClass().getResource('/valid-test.zip').getFile()
         Map<String, String> buildVars = harvesterHelper.addBuildProperties(zipFilePath, env)
