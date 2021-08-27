@@ -150,7 +150,7 @@ class ChefHelperTest extends BasePipelineTest {
 
     @Test
     void getTagForEnvironment_ReturnsDefault_WithUnknownEnvironments() throws Exception {
-        assertEquals("prod", chefHelper.getTagForEnvironment("unknown"))
+        assertEquals("unknown", chefHelper.getTagForEnvironment("unknown"))
     }
     @Test
     void getTagForNode_ReturnsProdTag_WithKnownEnvironment() throws Exception {

@@ -83,7 +83,7 @@ static List<String> getNodesForEnvironment(String environment, String nodesDirec
 }
 
 /**
- * Get a Git tag corresponding to a given chef environment. If the enviroment is unknown, default to returning 'prod'
+ * Get a Git tag corresponding to a given chef environment. If the enviroment is unknown, default to returning the environment name itself.
  *
  * @param environment chef_environment value for which to find the matching tag
  * @return tag name for the given environment name
@@ -94,7 +94,7 @@ static String getTagForEnvironment(String environment) throws RuntimeException {
             'testing': 'systest',
             'production': 'prod'
     ]
-    String tag = environmentToTagMap.get(environment, 'prod')
+    String tag = environmentToTagMap.get(environment, environment)
     return tag
 }
 
